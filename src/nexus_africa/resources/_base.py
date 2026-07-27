@@ -14,58 +14,84 @@ class SyncResource:
     Resources hold no HTTP state of their own — every verb helper delegates to
     ``client._request`` so that base-URL selection, auth, idempotency and error
     handling live in one place. Subclasses just translate methods into paths.
+
+    The ``_baas`` class attribute selects which base URL a resource targets:
+    ``False`` (default) routes to the payment gateway, ``True`` to the BaaS
+    gateway. See :class:`SyncBaaSBase`.
     """
+
+    #: Route this resource's requests to the BaaS base URL when True.
+    _baas: bool = False
 
     def __init__(self, client: NexusClient) -> None:
         self._client = client
 
     def _get(self, path: str, **params: Any) -> dict[str, Any]:
         """GET ``path`` with optional query ``params`` (``None`` values dropped upstream)."""
-        return self._client._request("GET", path, params=params or None)
+        return self._client._request("GET", path, params=params or None, baas=self._baas)
 
     def _post(
         self, path: str, body: dict[str, Any] | None = None, *, idempotency_key: str | None = None
     ) -> dict[str, Any]:
         """POST ``body`` as JSON, optionally carrying an idempotency key."""
-        return self._client._request("POST", path, json=body, idempotency_key=idempotency_key)
+        return self._client._request(
+            "POST", path, json=body, idempotency_key=idempotency_key, baas=self._baas
+        )
 
     def _patch(self, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         """PATCH ``path`` with an optional JSON ``body``."""
-        return self._client._request("PATCH", path, json=body)
+        return self._client._request("PATCH", path, json=body, baas=self._baas)
 
     def _put(self, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         """PUT ``path`` with an optional JSON ``body``."""
-        return self._client._request("PUT", path, json=body)
+        return self._client._request("PUT", path, json=body, baas=self._baas)
 
     def _delete(self, path: str) -> dict[str, Any]:
         """DELETE ``path``."""
-        return self._client._request("DELETE", path)
+        return self._client._request("DELETE", path, baas=self._baas)
 
 
 class AsyncResource:
     """Async base resource — awaitable mirror of :class:`SyncResource`."""
+
+    #: Route this resource's requests to the BaaS base URL when True.
+    _baas: bool = False
 
     def __init__(self, client: AsyncNexusClient) -> None:
         self._client = client
 
     async def _get(self, path: str, **params: Any) -> dict[str, Any]:
         """GET ``path`` with optional query ``params``."""
-        return await self._client._request("GET", path, params=params or None)
+        return await self._client._request("GET", path, params=params or None, baas=self._baas)
 
     async def _post(
         self, path: str, body: dict[str, Any] | None = None, *, idempotency_key: str | None = None
     ) -> dict[str, Any]:
         """POST ``body`` as JSON, optionally carrying an idempotency key."""
-        return await self._client._request("POST", path, json=body, idempotency_key=idempotency_key)
+        return await self._client._request(
+            "POST", path, json=body, idempotency_key=idempotency_key, baas=self._baas
+        )
 
     async def _patch(self, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         """PATCH ``path`` with an optional JSON ``body``."""
-        return await self._client._request("PATCH", path, json=body)
+        return await self._client._request("PATCH", path, json=body, baas=self._baas)
 
     async def _put(self, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         """PUT ``path`` with an optional JSON ``body``."""
-        return await self._client._request("PUT", path, json=body)
+        return await self._client._request("PUT", path, json=body, baas=self._baas)
 
     async def _delete(self, path: str) -> dict[str, Any]:
         """DELETE ``path``."""
-        return await self._client._request("DELETE", path)
+        return await self._client._request("DELETE", path, baas=self._baas)
+
+
+class SyncBaaSBase(SyncResource):
+    """Base for synchronous BaaS resources — routes to the BaaS base URL."""
+
+    _baas = True
+
+
+class AsyncBaaSBase(AsyncResource):
+    """Base for asynchronous BaaS resources — routes to the BaaS base URL."""
+
+    _baas = True

@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- BaaS resources now route to the `/baas-gateway` base URL instead of the
+  payment gateway. Requests were previously sent to the wrong host because the
+  `baas` flag was never propagated; a `_baas` class attribute on the base
+  resources now carries it through every verb helper.
+
+### Added
+
+- Regression tests asserting BaaS calls reach the BaaS host and never the gateway.
+
 ## [0.1.0] - 2026-07-27
 
 ### Added
