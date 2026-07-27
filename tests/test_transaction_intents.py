@@ -1,8 +1,8 @@
 """Tests for the TransactionIntents resource."""
 
+import httpx
 import pytest
 import respx
-import httpx
 
 from nexus_africa import NexusClient, TransactionStatus
 from nexus_africa._exceptions import IdempotencyConflict, TransactionIntentError

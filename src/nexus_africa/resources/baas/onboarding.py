@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from ..._models import CreateOnboardingSessionRequest, OnboardingSession, Party
 from .._base import AsyncResource, SyncResource
 
@@ -20,7 +22,9 @@ class BaaSOnboardingResource(SyncResource):
         raw = self._post("/onboarding-sessions", req.model_dump(by_alias=True, exclude_none=True))
         return OnboardingSession.model_validate(raw)
 
-    def upload_document(self, session_id: str, document: bytes, document_type: str) -> dict:
+    def upload_document(
+        self, session_id: str, document: bytes, document_type: str
+    ) -> dict[str, Any]:
         """Upload a KYC document to an onboarding session.
 
         Note: this endpoint likely expects multipart/form-data.
@@ -61,7 +65,9 @@ class AsyncBaaSOnboardingResource(AsyncResource):
             nationality_code=nationality_code,
             document_type=document_type,
         )
-        raw = await self._post("/onboarding-sessions", req.model_dump(by_alias=True, exclude_none=True))
+        raw = await self._post(
+            "/onboarding-sessions", req.model_dump(by_alias=True, exclude_none=True)
+        )
         return OnboardingSession.model_validate(raw)
 
     async def submit_session(self, session_id: str) -> OnboardingSession:

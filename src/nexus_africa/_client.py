@@ -8,13 +8,13 @@ import httpx
 
 from ._exceptions import raise_for_response
 from .resources import (
-    AsyncBalancesResource,
     AsyncBaaSResource,
+    AsyncBalancesResource,
     AsyncPaymentMethodsResource,
     AsyncSessionsResource,
     AsyncTransactionIntentsResource,
-    BalancesResource,
     BaaSResource,
+    BalancesResource,
     PaymentMethodsResource,
     SessionsResource,
     TransactionIntentsResource,
@@ -94,7 +94,7 @@ class NexusClient:
         idempotency_key: str | None = None,
         baas: bool = False,
         **kwargs: Any,
-    ) -> dict:
+    ) -> dict[str, Any]:
         http = self._baas_http if baas else self._http
         headers: dict[str, str] = {}
         if idempotency_key:
@@ -111,7 +111,8 @@ class NexusClient:
 
         if response.status_code == 204 or not response.content:
             return {}
-        return response.json()
+        data: dict[str, Any] = response.json()
+        return data
 
     # ------------------------------------------------------------------
     # Context manager
@@ -186,7 +187,7 @@ class AsyncNexusClient:
         idempotency_key: str | None = None,
         baas: bool = False,
         **kwargs: Any,
-    ) -> dict:
+    ) -> dict[str, Any]:
         http = self._baas_http if baas else self._http
         headers: dict[str, str] = {}
         if idempotency_key:
@@ -203,7 +204,8 @@ class AsyncNexusClient:
 
         if response.status_code == 204 or not response.content:
             return {}
-        return response.json()
+        data: dict[str, Any] = response.json()
+        return data
 
     async def aclose(self) -> None:
         await self._http.aclose()

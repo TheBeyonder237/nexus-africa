@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from .._enums import MobileMoneyProvider, PaymentMethodType
 from .._models import (
     CreatePaymentMethodRequest,
@@ -88,9 +90,12 @@ class PaymentMethodsResource(SyncResource):
         raw = self._get(f"/payment-methods/{payment_method_id}")
         return PaymentMethod.model_validate(raw)
 
-    def resolve_details(self, payment_method_id: str) -> dict:
+    def resolve_details(self, payment_method_id: str) -> dict[str, Any]:
         """Show the client information associated with a payment method."""
-        return self._post(f"/payment-methods/resolve-details", {"paymentMethodId": payment_method_id})
+        return self._post(
+            "/payment-methods/resolve-details",
+            {"paymentMethodId": payment_method_id},
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -101,7 +106,9 @@ class AsyncPaymentMethodsResource(AsyncResource):
     """Async variant of :class:`PaymentMethodsResource`."""
 
     async def create(self, request: CreatePaymentMethodRequest) -> PaymentMethod:
-        raw = await self._post("/payment-methods", request.model_dump(by_alias=True, exclude_none=True))
+        raw = await self._post(
+            "/payment-methods", request.model_dump(by_alias=True, exclude_none=True)
+        )
         return PaymentMethod.model_validate(raw)
 
     async def create_mobile_money(
@@ -129,5 +136,8 @@ class AsyncPaymentMethodsResource(AsyncResource):
         raw = await self._get(f"/payment-methods/{payment_method_id}")
         return PaymentMethod.model_validate(raw)
 
-    async def resolve_details(self, payment_method_id: str) -> dict:
-        return await self._post("/payment-methods/resolve-details", {"paymentMethodId": payment_method_id})
+    async def resolve_details(self, payment_method_id: str) -> dict[str, Any]:
+        return await self._post(
+            "/payment-methods/resolve-details",
+            {"paymentMethodId": payment_method_id},
+        )

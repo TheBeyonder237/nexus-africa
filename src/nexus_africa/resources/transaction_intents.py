@@ -131,7 +131,11 @@ class TransactionIntentsResource(SyncResource):
         status: str | None = None,
     ) -> TransactionIntentList:
         """List Transaction Intents with optional filtering."""
-        params = {k: v for k, v in {"page": page, "pageSize": page_size, "status": status}.items() if v is not None}
+        params = {
+            k: v
+            for k, v in {"page": page, "pageSize": page_size, "status": status}.items()
+            if v is not None
+        }
         raw = self._get("/transaction-intents", **params)
         return TransactionIntentList.model_validate(raw)
 
@@ -219,7 +223,11 @@ class AsyncTransactionIntentsResource(AsyncResource):
         page_size: int | None = None,
         status: str | None = None,
     ) -> TransactionIntentList:
-        params = {k: v for k, v in {"page": page, "pageSize": page_size, "status": status}.items() if v is not None}
+        params = {
+            k: v
+            for k, v in {"page": page, "pageSize": page_size, "status": status}.items()
+            if v is not None
+        }
         raw = await self._get("/transaction-intents", **params)
         return TransactionIntentList.model_validate(raw)
 

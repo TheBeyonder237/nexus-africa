@@ -43,6 +43,7 @@ Webhook verification::
         ...
 """
 
+from . import _webhook as webhook
 from ._client import AsyncNexusClient, NexusClient
 from ._enums import (
     CardCategory,
@@ -88,7 +89,6 @@ from ._models import (
     TransactionIntentList,
     WebhookEvent,
 )
-from . import _webhook as webhook
 
 __version__ = "0.1.0"
 

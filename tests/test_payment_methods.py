@@ -1,10 +1,10 @@
 """Integration-style tests for the PaymentMethods resource (mocked HTTP)."""
 
+import httpx
 import pytest
 import respx
-import httpx
 
-from nexus_africa import NexusClient, MobileMoneyProvider, PaymentMethodType
+from nexus_africa import MobileMoneyProvider, NexusClient, PaymentMethodType
 from nexus_africa._exceptions import PaymentMethodError
 
 GATEWAY = "https://api.dev.neero.io/payment-gateway/api/v1"

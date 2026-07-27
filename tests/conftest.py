@@ -2,7 +2,6 @@
 
 import pytest
 import respx
-import httpx
 
 SANDBOX_GATEWAY = "https://api.dev.neero.io/payment-gateway/api/v1"
 SANDBOX_BAAS = "https://api.dev.neero.io/baas-gateway/api/v1"

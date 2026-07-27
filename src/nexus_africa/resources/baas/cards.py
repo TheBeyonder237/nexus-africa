@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from ..._enums import CardCategory
 from ..._models import Card, CardSecureDetails, CardViewLink, CreateCardRequest
 from .._base import AsyncResource, SyncResource
@@ -34,7 +36,7 @@ class BaaSCardsResource(SyncResource):
         raw = self._get(f"/cards/{card_id}/secure-details")
         return CardSecureDetails.model_validate(raw)
 
-    def cancel(self, card_id: int) -> dict:
+    def cancel(self, card_id: int) -> dict[str, Any]:
         """Permanently cancel (delete) a card."""
         return self._delete(f"/cards/{card_id}")
 
@@ -61,5 +63,5 @@ class AsyncBaaSCardsResource(AsyncResource):
         raw = await self._get(f"/cards/{card_id}/secure-details")
         return CardSecureDetails.model_validate(raw)
 
-    async def cancel(self, card_id: int) -> dict:
+    async def cancel(self, card_id: int) -> dict[str, Any]:
         return await self._delete(f"/cards/{card_id}")

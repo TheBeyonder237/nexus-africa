@@ -47,8 +47,15 @@ packages = ["src/nexus_africa"]
 [tool.ruff]
 target-version = "py310"
 line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "UP", "ANN"]
-ignore = ["ANN101", "ANN102"]
+# ANN401: explicit `Any` is intentional on HTTP kwargs/params passthrough.
+ignore = ["ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests don't need return/parameter type annotations.
+"tests/**" = ["ANN001", "ANN201", "ANN202"]
 
 [tool.mypy]
 python_version = "3.10"

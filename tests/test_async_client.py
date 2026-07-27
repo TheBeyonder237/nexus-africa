@@ -1,8 +1,8 @@
 """Async client smoke tests."""
 
+import httpx
 import pytest
 import respx
-import httpx
 
 from nexus_africa import AsyncNexusClient, MobileMoneyProvider, TransactionStatus
 

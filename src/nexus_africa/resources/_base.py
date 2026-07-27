@@ -12,19 +12,21 @@ class SyncResource:
     def __init__(self, client: NexusClient) -> None:
         self._client = client
 
-    def _get(self, path: str, **params: Any) -> dict:
+    def _get(self, path: str, **params: Any) -> dict[str, Any]:
         return self._client._request("GET", path, params=params or None)
 
-    def _post(self, path: str, body: dict | None = None, *, idempotency_key: str | None = None) -> dict:
+    def _post(
+        self, path: str, body: dict[str, Any] | None = None, *, idempotency_key: str | None = None
+    ) -> dict[str, Any]:
         return self._client._request("POST", path, json=body, idempotency_key=idempotency_key)
 
-    def _patch(self, path: str, body: dict | None = None) -> dict:
+    def _patch(self, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         return self._client._request("PATCH", path, json=body)
 
-    def _put(self, path: str, body: dict | None = None) -> dict:
+    def _put(self, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         return self._client._request("PUT", path, json=body)
 
-    def _delete(self, path: str) -> dict:
+    def _delete(self, path: str) -> dict[str, Any]:
         return self._client._request("DELETE", path)
 
 
@@ -32,17 +34,19 @@ class AsyncResource:
     def __init__(self, client: AsyncNexusClient) -> None:
         self._client = client
 
-    async def _get(self, path: str, **params: Any) -> dict:
+    async def _get(self, path: str, **params: Any) -> dict[str, Any]:
         return await self._client._request("GET", path, params=params or None)
 
-    async def _post(self, path: str, body: dict | None = None, *, idempotency_key: str | None = None) -> dict:
+    async def _post(
+        self, path: str, body: dict[str, Any] | None = None, *, idempotency_key: str | None = None
+    ) -> dict[str, Any]:
         return await self._client._request("POST", path, json=body, idempotency_key=idempotency_key)
 
-    async def _patch(self, path: str, body: dict | None = None) -> dict:
+    async def _patch(self, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         return await self._client._request("PATCH", path, json=body)
 
-    async def _put(self, path: str, body: dict | None = None) -> dict:
+    async def _put(self, path: str, body: dict[str, Any] | None = None) -> dict[str, Any]:
         return await self._client._request("PUT", path, json=body)
 
-    async def _delete(self, path: str) -> dict:
+    async def _delete(self, path: str) -> dict[str, Any]:
         return await self._client._request("DELETE", path)

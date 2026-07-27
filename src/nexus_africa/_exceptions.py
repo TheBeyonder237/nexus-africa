@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 
 class NexusError(Exception):
     """Base for all Nexus API errors."""
@@ -10,7 +12,7 @@ class NexusError(Exception):
     message: str
     http_status: int
     detail: str | None
-    error_data: dict
+    error_data: dict[str, Any]
 
     def __init__(
         self,
@@ -18,7 +20,7 @@ class NexusError(Exception):
         message: str,
         http_status: int,
         detail: str | None = None,
-        error_data: dict | None = None,
+        error_data: dict[str, Any] | None = None,
     ) -> None:
         self.code = code
         self.message = message
@@ -80,14 +82,14 @@ class ServerError(NexusError):
 # Factory
 # ---------------------------------------------------------------------------
 
-def raise_for_response(body: dict, http_status: int) -> None:
+def raise_for_response(body: dict[str, Any], http_status: int) -> None:
     """Parse an error body and raise the matching typed exception."""
     code: str = body.get("code", "UNKNOWN")
     message: str = body.get("message", "Unknown error")
     detail: str | None = body.get("detail")
-    error_data: dict = body.get("errorData") or {}
+    error_data: dict[str, Any] = body.get("errorData") or {}
 
-    kwargs: dict = dict(
+    kwargs: dict[str, Any] = dict(
         code=code,
         message=message,
         http_status=http_status,

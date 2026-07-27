@@ -7,9 +7,8 @@ import time
 
 import pytest
 
-from nexus_africa._webhook import parse_event, verify_and_parse, verify_signature
 from nexus_africa._enums import WebhookEventType
-
+from nexus_africa._webhook import parse_event, verify_and_parse, verify_signature
 
 SECRET = "wh_test_secret"
 
