@@ -1,4 +1,15 @@
-from enum import StrEnum
+import sys
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:  # pragma: no cover - Python 3.10 fallback (StrEnum is 3.11+)
+    from enum import Enum
+
+    class StrEnum(str, Enum):
+        """Minimal StrEnum backport for Python 3.10."""
+
+        def __str__(self) -> str:
+            return str(self.value)
 
 
 class Environment(StrEnum):
