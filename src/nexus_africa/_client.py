@@ -60,9 +60,21 @@ class NexusClient:
         sandbox: bool = True,
         timeout: float = _DEFAULT_TIMEOUT,
     ) -> None:
+        """Build a client and its two httpx sessions (gateway + BaaS).
+
+        Args:
+            secret_key:    Nexus secret key; sent as HTTP Basic auth username
+                           with an empty password.
+            platform_code: Mandatory COBAC/ANIF platform code, propagated to
+                           transaction intents that don't override it.
+            sandbox:       Target the sandbox (default) or live base URLs.
+            timeout:       Per-request timeout in seconds.
+        """
         self.platform_code = platform_code
         self._sandbox = sandbox
 
+        # Two sessions: one per base URL. _request routes to the right one via
+        # its ``baas`` flag; both share the same Basic-auth credentials.
         self._http = httpx.Client(
             auth=(secret_key, ""),
             base_url=_GATEWAY_SANDBOX if sandbox else _GATEWAY_LIVE,
@@ -95,6 +107,21 @@ class NexusClient:
         baas: bool = False,
         **kwargs: Any,
     ) -> dict[str, Any]:
+        """Send a request and return the decoded JSON body.
+
+        Args:
+            method:          HTTP verb.
+            path:            Path relative to the selected base URL.
+            idempotency_key: Sent as ``X-IDEMPOTENCY-KEY`` on writes.
+            baas:            Route to the BaaS base URL instead of the gateway.
+            **kwargs:        Forwarded to httpx (``json``, ``params``, ...).
+
+        Returns:
+            The parsed JSON object, or ``{}`` for 204 / empty responses.
+
+        Raises:
+            NexusError: For any non-2xx response (see :func:`raise_for_response`).
+        """
         http = self._baas_http if baas else self._http
         headers: dict[str, str] = {}
         if idempotency_key:
@@ -157,9 +184,11 @@ class AsyncNexusClient:
         sandbox: bool = True,
         timeout: float = _DEFAULT_TIMEOUT,
     ) -> None:
+        """Build an async client. See :class:`NexusClient` for the arguments."""
         self.platform_code = platform_code
         self._sandbox = sandbox
 
+        # Two async sessions mirroring the sync client (gateway + BaaS).
         self._http = httpx.AsyncClient(
             auth=(secret_key, ""),
             base_url=_GATEWAY_SANDBOX if sandbox else _GATEWAY_LIVE,
@@ -188,6 +217,7 @@ class AsyncNexusClient:
         baas: bool = False,
         **kwargs: Any,
     ) -> dict[str, Any]:
+        """Async counterpart of :meth:`NexusClient._request`."""
         http = self._baas_http if baas else self._http
         headers: dict[str, str] = {}
         if idempotency_key:

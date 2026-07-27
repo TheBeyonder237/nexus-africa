@@ -21,6 +21,7 @@ def _build_request(
     external_transaction_id: str | None,
     flow_transactions: list[FlowTransaction] | None,
 ) -> CreateTransactionIntentRequest:
+    """Assemble the intent request body shared by cash-in and cash-out."""
     return CreateTransactionIntentRequest(
         source_payment_method_id=source_payment_method_id,
         destination_payment_method_id=destination_payment_method_id,
@@ -169,6 +170,7 @@ class AsyncTransactionIntentsResource(AsyncResource):
         flow_transactions: list[FlowTransaction] | None = None,
         idempotency_key: str | None = None,
     ) -> TransactionIntent:
+        """Async variant of :meth:`TransactionIntentsResource.cash_in`."""
         req = _build_request(
             source_payment_method_id,
             destination_payment_method_id,
@@ -196,6 +198,7 @@ class AsyncTransactionIntentsResource(AsyncResource):
         external_transaction_id: str | None = None,
         idempotency_key: str | None = None,
     ) -> TransactionIntent:
+        """Async variant of :meth:`TransactionIntentsResource.cash_out`."""
         req = _build_request(
             source_payment_method_id,
             destination_payment_method_id,

@@ -1,4 +1,10 @@
-"""BaaS resource aggregator — config, onboarding, parties, cards."""
+"""BaaS resource aggregator — config, onboarding, parties, cards.
+
+These resources target the separate ``/baas-gateway`` base URL. The endpoint
+paths and payload shapes here are inferred from the documentation and are
+still pending verification against the live BaaS sandbox — treat this layer as
+provisional and expect field/route adjustments before relying on it.
+"""
 
 from __future__ import annotations
 
@@ -24,6 +30,8 @@ class BaaSResource:
 
 
 class AsyncBaaSResource:
+    """Async variant of :class:`BaaSResource` (``client.baas``)."""
+
     def __init__(self, client: AsyncNexusClient) -> None:
         self.config = AsyncBaaSConfigResource(client)
         self.onboarding = AsyncBaaSOnboardingResource(client)

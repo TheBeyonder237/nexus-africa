@@ -10,6 +10,14 @@ from .._base import AsyncResource, SyncResource
 
 
 class BaaSCardsResource(SyncResource):
+    """Issue and manage BaaS virtual cards.
+
+    Note:
+        The freeze/unfreeze contract (``PUT /cards/{id}/freeze`` with a
+        ``{"frozen": ...}`` body) is assumed and not yet confirmed against the
+        BaaS API.
+    """
+
     def create_virtual(self, party_id: str) -> Card:
         """Issue a new virtual card for a KYC-validated Party."""
         req = CreateCardRequest(party_id=party_id, card_category=CardCategory.VIRTUAL)
@@ -42,6 +50,8 @@ class BaaSCardsResource(SyncResource):
 
 
 class AsyncBaaSCardsResource(AsyncResource):
+    """Async variant of :class:`BaaSCardsResource`."""
+
     async def create_virtual(self, party_id: str) -> Card:
         req = CreateCardRequest(party_id=party_id, card_category=CardCategory.VIRTUAL)
         raw = await self._post("/cards", req.model_dump(by_alias=True, exclude_none=True))

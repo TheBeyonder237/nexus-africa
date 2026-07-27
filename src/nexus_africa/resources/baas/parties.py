@@ -7,7 +7,10 @@ from .._base import AsyncResource, SyncResource
 
 
 class BaaSPartiesResource(SyncResource):
+    """Look up KYC-validated parties."""
+
     def get(self, party_id: str) -> Party:
+        """Retrieve a single Party by id."""
         raw = self._get(f"/parties/{party_id}")
         return Party.model_validate(raw)
 
@@ -17,12 +20,15 @@ class BaaSPartiesResource(SyncResource):
         return Party.model_validate(raw)
 
     def list(self) -> list[Party]:
+        """List all parties linked to this account."""
         raw = self._get("/parties")
         items = raw if isinstance(raw, list) else raw.get("data", [])
         return [Party.model_validate(p) for p in items]
 
 
 class AsyncBaaSPartiesResource(AsyncResource):
+    """Async variant of :class:`BaaSPartiesResource`."""
+
     async def get(self, party_id: str) -> Party:
         raw = await self._get(f"/parties/{party_id}")
         return Party.model_validate(raw)

@@ -7,6 +7,8 @@ from ._base import AsyncResource, SyncResource
 
 
 class SessionsResource(SyncResource):
+    """Create hosted payment sessions (checkout pages)."""
+
     def create(
         self,
         transaction_intent_id: str,
@@ -42,6 +44,8 @@ class SessionsResource(SyncResource):
 
 
 class AsyncSessionsResource(AsyncResource):
+    """Async variant of :class:`SessionsResource`."""
+
     async def create(
         self,
         transaction_intent_id: str,
@@ -51,6 +55,7 @@ class AsyncSessionsResource(AsyncResource):
         description: str | None = None,
         logo_url: str | None = None,
     ) -> Session:
+        """Async variant of :meth:`SessionsResource.create`."""
         display_info = None
         if any([title, description, logo_url]):
             display_info = DisplayInfo(title=title, description=description, logo_url=logo_url)

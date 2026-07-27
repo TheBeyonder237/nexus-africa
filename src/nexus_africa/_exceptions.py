@@ -1,4 +1,20 @@
-"""Typed exception hierarchy mirroring Nexus error code families."""
+"""Typed exception hierarchy mirroring Nexus error code families.
+
+Every non-2xx API response is converted into one of these exceptions by
+:func:`raise_for_response`. The concrete subclass is chosen from the error
+``code`` prefix (``PM-``, ``TI-``, ``verif-``, ``gtw-``, ``GE-``, ``BAL-``,
+``TS-``) or, failing that, from the HTTP status. Catch :class:`NexusError` to
+handle everything, or a specific subclass to react to one family::
+
+    from nexus_africa import IdempotencyConflict, TransactionIntentError
+
+    try:
+        client.intents.cash_in(...)
+    except IdempotencyConflict as exc:
+        intent = client.intents.get(exc.error_data["transactionIntentId"])
+    except TransactionIntentError as exc:
+        log.warning("intent rejected: %s", exc.message)
+"""
 
 from __future__ import annotations
 
@@ -6,7 +22,17 @@ from typing import Any
 
 
 class NexusError(Exception):
-    """Base for all Nexus API errors."""
+    """Base for all Nexus API errors.
+
+    Attributes:
+        code:        Machine-readable error code (e.g. ``"PM-0004"``), or
+                     ``"UNKNOWN"`` when the body carried none.
+        message:     Human-readable error summary from the API.
+        http_status: HTTP status code of the failing response.
+        detail:      Optional longer explanation, when the API supplies one.
+        error_data:  Raw ``errorData`` payload — useful extra context such as
+                     the id of an already-existing resource.
+    """
 
     code: str
     message: str
@@ -83,7 +109,19 @@ class ServerError(NexusError):
 # ---------------------------------------------------------------------------
 
 def raise_for_response(body: dict[str, Any], http_status: int) -> None:
-    """Parse an error body and raise the matching typed exception."""
+    """Parse an error body and raise the matching typed exception.
+
+    Resolution order: the specific ``GE-0002`` idempotency conflict first,
+    then each ``code`` prefix family, then a fallback on the HTTP status
+    (401/403, 429, 5xx). Anything unrecognised raises a bare :class:`NexusError`.
+
+    Args:
+        body:        Decoded JSON error body (``code`` / ``message`` / ...).
+        http_status: HTTP status code of the response.
+
+    Raises:
+        NexusError: Always — a subclass whenever the family can be identified.
+    """
     code: str = body.get("code", "UNKNOWN")
     message: str = body.get("message", "Unknown error")
     detail: str | None = body.get("detail")
