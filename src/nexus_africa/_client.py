@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
+import time
 from typing import Any
 
 import httpx
 
 from ._exceptions import raise_for_response
+from ._retry import compute_backoff, is_retryable_status, parse_retry_after
 from .resources import (
     AsyncBaaSResource,
     AsyncBalancesResource,
@@ -30,6 +33,8 @@ _BAAS_SANDBOX = "https://api.dev.neero.io/baas-gateway/api/v1"
 _BAAS_LIVE = "https://api.neero.tech/baas-gateway/api/v1"
 
 _DEFAULT_TIMEOUT = 30.0
+_DEFAULT_MAX_RETRIES = 3
+_DEFAULT_BACKOFF_FACTOR = 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -59,19 +64,28 @@ class NexusClient:
         *,
         sandbox: bool = True,
         timeout: float = _DEFAULT_TIMEOUT,
+        max_retries: int = _DEFAULT_MAX_RETRIES,
+        backoff_factor: float = _DEFAULT_BACKOFF_FACTOR,
     ) -> None:
         """Build a client and its two httpx sessions (gateway + BaaS).
 
         Args:
-            secret_key:    Nexus secret key; sent as HTTP Basic auth username
-                           with an empty password.
-            platform_code: Mandatory COBAC/ANIF platform code, propagated to
-                           transaction intents that don't override it.
-            sandbox:       Target the sandbox (default) or live base URLs.
-            timeout:       Per-request timeout in seconds.
+            secret_key:     Nexus secret key; sent as HTTP Basic auth username
+                            with an empty password.
+            platform_code:  Mandatory COBAC/ANIF platform code, propagated to
+                            transaction intents that don't override it.
+            sandbox:        Target the sandbox (default) or live base URLs.
+            timeout:        Per-request timeout in seconds.
+            max_retries:    Extra attempts on transient failures (429, 5xx,
+                            transport errors). ``0`` disables retrying.
+            backoff_factor: Base for exponential backoff, in seconds; the
+                            wait before a retry is ``backoff_factor * 2**n``
+                            with jitter, unless a ``Retry-After`` header applies.
         """
         self.platform_code = platform_code
         self._sandbox = sandbox
+        self._max_retries = max_retries
+        self._backoff_factor = backoff_factor
 
         # Two sessions: one per base URL. _request routes to the right one via
         # its ``baas`` flag; both share the same Basic-auth credentials.
@@ -116,6 +130,10 @@ class NexusClient:
             baas:            Route to the BaaS base URL instead of the gateway.
             **kwargs:        Forwarded to httpx (``json``, ``params``, ...).
 
+        Transient failures (429, 5xx, transport errors) are retried up to
+        ``max_retries`` times with exponential backoff; other errors raise
+        immediately.
+
         Returns:
             The parsed JSON object, or ``{}`` for 204 / empty responses.
 
@@ -127,19 +145,36 @@ class NexusClient:
         if idempotency_key:
             headers["X-IDEMPOTENCY-KEY"] = idempotency_key
 
-        response = http.request(method, path, headers=headers, **kwargs)
+        for attempt in range(self._max_retries + 1):
+            can_retry = attempt < self._max_retries
+            try:
+                response = http.request(method, path, headers=headers, **kwargs)
+            except httpx.TransportError:
+                # Connection/timeout error: retry if attempts remain, else propagate.
+                if not can_retry:
+                    raise
+                time.sleep(compute_backoff(attempt, self._backoff_factor))
+                continue
 
-        if not response.is_success:
+            if response.is_success:
+                if response.status_code == 204 or not response.content:
+                    return {}
+                data: dict[str, Any] = response.json()
+                return data
+
+            if can_retry and is_retryable_status(response.status_code):
+                retry_after = parse_retry_after(response.headers.get("Retry-After"))
+                time.sleep(compute_backoff(attempt, self._backoff_factor, retry_after=retry_after))
+                continue
+
+            # Non-retryable status, or retries exhausted: raise the typed error.
             try:
                 body = response.json()
             except Exception:
                 body = {"code": "PARSE_ERROR", "message": response.text}
             raise_for_response(body, response.status_code)
 
-        if response.status_code == 204 or not response.content:
-            return {}
-        data: dict[str, Any] = response.json()
-        return data
+        raise RuntimeError("unreachable: retry loop exited without returning")  # pragma: no cover
 
     # ------------------------------------------------------------------
     # Context manager
@@ -183,10 +218,14 @@ class AsyncNexusClient:
         *,
         sandbox: bool = True,
         timeout: float = _DEFAULT_TIMEOUT,
+        max_retries: int = _DEFAULT_MAX_RETRIES,
+        backoff_factor: float = _DEFAULT_BACKOFF_FACTOR,
     ) -> None:
         """Build an async client. See :class:`NexusClient` for the arguments."""
         self.platform_code = platform_code
         self._sandbox = sandbox
+        self._max_retries = max_retries
+        self._backoff_factor = backoff_factor
 
         # Two async sessions mirroring the sync client (gateway + BaaS).
         self._http = httpx.AsyncClient(
@@ -223,19 +262,38 @@ class AsyncNexusClient:
         if idempotency_key:
             headers["X-IDEMPOTENCY-KEY"] = idempotency_key
 
-        response = await http.request(method, path, headers=headers, **kwargs)
+        for attempt in range(self._max_retries + 1):
+            can_retry = attempt < self._max_retries
+            try:
+                response = await http.request(method, path, headers=headers, **kwargs)
+            except httpx.TransportError:
+                # Connection/timeout error: retry if attempts remain, else propagate.
+                if not can_retry:
+                    raise
+                await asyncio.sleep(compute_backoff(attempt, self._backoff_factor))
+                continue
 
-        if not response.is_success:
+            if response.is_success:
+                if response.status_code == 204 or not response.content:
+                    return {}
+                data: dict[str, Any] = response.json()
+                return data
+
+            if can_retry and is_retryable_status(response.status_code):
+                retry_after = parse_retry_after(response.headers.get("Retry-After"))
+                await asyncio.sleep(
+                    compute_backoff(attempt, self._backoff_factor, retry_after=retry_after)
+                )
+                continue
+
+            # Non-retryable status, or retries exhausted: raise the typed error.
             try:
                 body = response.json()
             except Exception:
                 body = {"code": "PARSE_ERROR", "message": response.text}
             raise_for_response(body, response.status_code)
 
-        if response.status_code == 204 or not response.content:
-            return {}
-        data: dict[str, Any] = response.json()
-        return data
+        raise RuntimeError("unreachable: retry loop exited without returning")  # pragma: no cover
 
     async def aclose(self) -> None:
         await self._http.aclose()

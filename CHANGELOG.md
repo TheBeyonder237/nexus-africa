@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Automatic retries with exponential backoff and full jitter on transient
+  failures (HTTP 429, 5xx and transport errors). Configurable per client via
+  `max_retries` (default 3) and `backoff_factor` (default 0.5s); a
+  `Retry-After` header is honoured when present. `max_retries=0` disables it.
+
 ### Fixed
 
 - BaaS resources now route to the `/baas-gateway` base URL instead of the
