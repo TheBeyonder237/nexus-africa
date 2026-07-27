@@ -6,10 +6,10 @@ from typing import Any
 
 from ..._enums import CardCategory
 from ..._models import Card, CardSecureDetails, CardViewLink, CreateCardRequest
-from .._base import AsyncResource, SyncResource
+from .._base import AsyncBaaSBase, SyncBaaSBase
 
 
-class BaaSCardsResource(SyncResource):
+class BaaSCardsResource(SyncBaaSBase):
     """Issue and manage BaaS virtual cards.
 
     Note:
@@ -49,7 +49,7 @@ class BaaSCardsResource(SyncResource):
         return self._delete(f"/cards/{card_id}")
 
 
-class AsyncBaaSCardsResource(AsyncResource):
+class AsyncBaaSCardsResource(AsyncBaaSBase):
     """Async variant of :class:`BaaSCardsResource`."""
 
     async def create_virtual(self, party_id: str) -> Card:

@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import Any
 
 from ..._models import CreateOnboardingSessionRequest, OnboardingSession, Party
-from .._base import AsyncResource, SyncResource
+from .._base import AsyncBaaSBase, SyncBaaSBase
 
 
-class BaaSOnboardingResource(SyncResource):
+class BaaSOnboardingResource(SyncBaaSBase):
     """Drive a KYC onboarding session through to an approved Party."""
 
     def create_session(
@@ -63,7 +63,7 @@ class BaaSOnboardingResource(SyncResource):
         return [OnboardingSession.model_validate(s) for s in items]
 
 
-class AsyncBaaSOnboardingResource(AsyncResource):
+class AsyncBaaSOnboardingResource(AsyncBaaSBase):
     """Async variant of :class:`BaaSOnboardingResource`."""
 
     async def create_session(

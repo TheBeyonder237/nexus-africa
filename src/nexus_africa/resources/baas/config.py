@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from ..._models import Nationality, RequiredDocument
-from .._base import AsyncResource, SyncResource
+from .._base import AsyncBaaSBase, SyncBaaSBase
 
 
-class BaaSConfigResource(SyncResource):
+class BaaSConfigResource(SyncBaaSBase):
     """Reference data for onboarding (nationalities, required documents)."""
 
     def list_nationalities(self) -> list[Nationality]:
@@ -23,7 +23,7 @@ class BaaSConfigResource(SyncResource):
         return [RequiredDocument.model_validate(d) for d in items]
 
 
-class AsyncBaaSConfigResource(AsyncResource):
+class AsyncBaaSConfigResource(AsyncBaaSBase):
     """Async variant of :class:`BaaSConfigResource`."""
 
     async def list_nationalities(self) -> list[Nationality]:

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from ..._models import Party
-from .._base import AsyncResource, SyncResource
+from .._base import AsyncBaaSBase, SyncBaaSBase
 
 
-class BaaSPartiesResource(SyncResource):
+class BaaSPartiesResource(SyncBaaSBase):
     """Look up KYC-validated parties."""
 
     def get(self, party_id: str) -> Party:
@@ -26,7 +26,7 @@ class BaaSPartiesResource(SyncResource):
         return [Party.model_validate(p) for p in items]
 
 
-class AsyncBaaSPartiesResource(AsyncResource):
+class AsyncBaaSPartiesResource(AsyncBaaSBase):
     """Async variant of :class:`BaaSPartiesResource`."""
 
     async def get(self, party_id: str) -> Party:
