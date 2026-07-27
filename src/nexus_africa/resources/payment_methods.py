@@ -20,6 +20,7 @@ def _mobile_money_request(
     country_iso: str,
     provider: MobileMoneyProvider,
 ) -> CreatePaymentMethodRequest:
+    """Build a MOBILE_MONEY payment-method creation request."""
     return CreatePaymentMethodRequest(
         type=PaymentMethodType.MOBILE_MONEY,
         mobile_money_details=MobileMoneyDetails(
@@ -36,6 +37,7 @@ def _merchant_request(
     balance_id: str,
     operator_id: int,
 ) -> CreatePaymentMethodRequest:
+    """Build a NEXUS_MERCHANT payment-method creation request."""
     return CreatePaymentMethodRequest(
         type=PaymentMethodType.NEXUS_MERCHANT,
         nexus_merchant_details=NexusMerchantDetails(
@@ -83,10 +85,12 @@ class PaymentMethodsResource(SyncResource):
         return self.create(_merchant_request(merchant_key, store_id, balance_id, operator_id))
 
     def list(self) -> list[PaymentMethod]:
+        """List every payment method registered on the account."""
         raw = self._get("/payment-methods")
         return PaymentMethodList.model_validate(raw).data
 
     def get(self, payment_method_id: str) -> PaymentMethod:
+        """Retrieve a single payment method by id."""
         raw = self._get(f"/payment-methods/{payment_method_id}")
         return PaymentMethod.model_validate(raw)
 
