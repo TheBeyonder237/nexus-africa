@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   payment gateway. Requests were previously sent to the wrong host because the
   `baas` flag was never propagated; a `_baas` class attribute on the base
   resources now carries it through every verb helper.
+- Error parsing now reads the API's RFC 7807-style bodies: the exception
+  `message` is taken from `title` (falling back to `message`) and `error_data`
+  from `fieldErrors` (falling back to `errorData`). Previously errors surfaced
+  as "Unknown error" because only `message`/`errorData` were read. Verified
+  against a live sandbox 403 ("Ip not allowed").
 
 ### Added
 

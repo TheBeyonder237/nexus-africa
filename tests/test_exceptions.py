@@ -85,3 +85,48 @@ def test_exception_str():
         raise_for_response(_body("PM-0005", "Payment method not found"), 400)
     assert "PM-0005" in str(exc.value)
     assert "Payment method not found" in str(exc.value)
+
+
+# ---------------------------------------------------------------------------
+# RFC 7807-style bodies (real Nexus shape: title / detail / fieldErrors)
+# ---------------------------------------------------------------------------
+
+def test_title_used_as_message_when_message_absent():
+    # Real sandbox 403 body observed for an IP-allowlist rejection.
+    body = {
+        "code": "GE-0004",
+        "title": "Ip not allowed",
+        "detail": "Ip address 1.2.3.4 is not amongst allowed Ip address list",
+        "fieldErrors": None,
+    }
+    with pytest.raises(GeneralError) as exc:
+        raise_for_response(body, 403)
+    assert exc.value.message == "Ip not allowed"
+    assert "not amongst allowed" in exc.value.detail
+    assert "Ip not allowed" in str(exc.value)
+
+
+def test_message_wins_over_title_when_both_present():
+    body = {"code": "PM-0005", "message": "explicit", "title": "generic"}
+    with pytest.raises(PaymentMethodError) as exc:
+        raise_for_response(body, 400)
+    assert exc.value.message == "explicit"
+
+
+def test_field_errors_preserved_in_error_data():
+    body = {
+        "code": "verif-1001",
+        "title": "Validation failed",
+        "fieldErrors": [{"field": "amount", "message": "must be positive"}],
+    }
+    with pytest.raises(VerificationError) as exc:
+        raise_for_response(body, 400)
+    assert exc.value.error_data == {
+        "fieldErrors": [{"field": "amount", "message": "must be positive"}]
+    }
+
+
+def test_missing_message_and_title_falls_back():
+    with pytest.raises(NexusError) as exc:
+        raise_for_response({"code": "UNKNOWN_CODE"}, 400)
+    assert exc.value.message == "Unknown error"
