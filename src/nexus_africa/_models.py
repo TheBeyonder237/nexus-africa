@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 from ._enums import (
@@ -42,10 +42,18 @@ class _Base(BaseModel):
 # ---------------------------------------------------------------------------
 
 class MobileMoneyDetails(_Base):
-    """Mobile Money account details (wallet phone number + operator)."""
+    """Mobile Money account details (wallet phone number + operator).
+
+    The API is asymmetric on the country field: requests expect ``countryIso``
+    while responses echo it back as ``countryCode``. We therefore accept both
+    on input and always serialise as ``countryIso``.
+    """
 
     phone_number: str
-    country_iso: str  # ISO 3166-1 alpha-2, e.g. "CM"
+    country_iso: str = Field(  # ISO 3166-1 alpha-2, e.g. "CM"
+        validation_alias=AliasChoices("countryIso", "countryCode", "country_iso"),
+        serialization_alias="countryIso",
+    )
     mobile_money_provider: MobileMoneyProvider
 
 
@@ -139,6 +147,7 @@ class CreateTransactionIntentRequest(_Base):
     source_payment_method_id: str
     destination_payment_method_id: str
     amount: int
+    currency_code: str  # ISO 4217, e.g. "XAF"; required by the API
     payment_type: PaymentType
     platform_code: str
     external_transaction_id: str | None = None  # your own dedup reference

@@ -60,6 +60,42 @@ def test_cash_in_uses_client_platform_code(client):
     assert captured["body"]["platformCode"] == "TEST"
 
 
+def test_cash_in_sends_currency_code(client):
+    """currencyCode is required by the API; it must be in the body (default XAF)."""
+    captured = {}
+
+    def capture_request(request):
+        import json
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(200, json=INTENT_RESPONSE)
+
+    with respx.mock:
+        respx.post(f"{GATEWAY}/transaction-intents/cash-in").mock(side_effect=capture_request)
+        client.intents.cash_in(
+            source_payment_method_id="pm_source",
+            destination_payment_method_id="pm_dest",
+            amount=1000,
+        )
+        client.intents.cash_in(
+            source_payment_method_id="pm_source",
+            destination_payment_method_id="pm_dest",
+            amount=1000,
+            currency_code="EUR",
+        )
+    assert captured["body"]["currencyCode"] == "EUR"
+
+    # And the default on the first call was XAF.
+    captured.clear()
+    with respx.mock:
+        respx.post(f"{GATEWAY}/transaction-intents/cash-in").mock(side_effect=capture_request)
+        client.intents.cash_in(
+            source_payment_method_id="pm_source",
+            destination_payment_method_id="pm_dest",
+            amount=1000,
+        )
+    assert captured["body"]["currencyCode"] == "XAF"
+
+
 def test_cash_out(client):
     response = {**INTENT_RESPONSE, "paymentType": "ORANGE_MONEY_TRANSFER"}
     with respx.mock:
