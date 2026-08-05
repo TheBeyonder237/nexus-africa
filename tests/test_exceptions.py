@@ -130,3 +130,21 @@ def test_missing_message_and_title_falls_back():
     with pytest.raises(NexusError) as exc:
         raise_for_response({"code": "UNKNOWN_CODE"}, 400)
     assert exc.value.message == "Unknown error"
+
+
+def test_null_code_does_not_crash():
+    # Real sandbox 400 body for a missing-field validation error: code is null.
+    body = {
+        "code": None,
+        "title": "Invalid data provided",
+        "detail": None,
+        "fieldErrors": [
+            {"objectName": "createTransactionIntentInput",
+             "fieldName": "currencyCode", "errorMessage": "must not be blank"},
+        ],
+    }
+    with pytest.raises(NexusError) as exc:
+        raise_for_response(body, 400)
+    assert exc.value.code == "UNKNOWN"
+    assert exc.value.message == "Invalid data provided"
+    assert exc.value.error_data["fieldErrors"][0]["fieldName"] == "currencyCode"

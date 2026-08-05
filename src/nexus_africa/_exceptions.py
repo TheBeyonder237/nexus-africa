@@ -122,7 +122,9 @@ def raise_for_response(body: dict[str, Any], http_status: int) -> None:
     Raises:
         NexusError: Always — a subclass whenever the family can be identified.
     """
-    code: str = body.get("code", "UNKNOWN")
+    # ``code`` may be absent or explicitly ``null`` (validation errors do this),
+    # so coalesce to "UNKNOWN" rather than trusting the key's presence.
+    code: str = body.get("code") or "UNKNOWN"
     # Nexus returns RFC 7807-style error bodies: the human-readable summary is
     # in ``title`` and field-level errors in ``fieldErrors``. Keep ``message`` /
     # ``errorData`` as fallbacks for any endpoint using the alternative keys.
