@@ -16,6 +16,7 @@ def _build_request(
     source_payment_method_id: str,
     destination_payment_method_id: str,
     amount: int,
+    currency_code: str,
     payment_type: PaymentType,
     platform_code: str,
     external_transaction_id: str | None,
@@ -26,6 +27,7 @@ def _build_request(
         source_payment_method_id=source_payment_method_id,
         destination_payment_method_id=destination_payment_method_id,
         amount=amount,
+        currency_code=currency_code,
         payment_type=payment_type,
         platform_code=platform_code,
         external_transaction_id=external_transaction_id,
@@ -46,6 +48,7 @@ class TransactionIntentsResource(SyncResource):
         source_payment_method_id: str,
         destination_payment_method_id: str,
         amount: int,
+        currency_code: str = "XAF",
         payment_type: PaymentType = PaymentType.MERCHANT_COLLECTION,
         platform_code: str | None = None,
         external_transaction_id: str | None = None,
@@ -57,7 +60,8 @@ class TransactionIntentsResource(SyncResource):
         Args:
             source_payment_method_id:      Client's Mobile Money PM id.
             destination_payment_method_id: Merchant PM id.
-            amount:                        Amount in XAF (integer).
+            amount:                        Amount in the smallest currency unit (integer).
+            currency_code:                 ISO 4217 code, required by the API (default "XAF").
             payment_type:                  Defaults to MERCHANT_COLLECTION.
             platform_code:                 Mandatory for COBAC/ANIF compliance.
                                            Falls back to ``client.platform_code``.
@@ -69,6 +73,7 @@ class TransactionIntentsResource(SyncResource):
             source_payment_method_id,
             destination_payment_method_id,
             amount,
+            currency_code,
             payment_type,
             platform_code or self._client.platform_code,
             external_transaction_id,
@@ -87,6 +92,7 @@ class TransactionIntentsResource(SyncResource):
         source_payment_method_id: str,
         destination_payment_method_id: str,
         amount: int,
+        currency_code: str = "XAF",
         payment_type: PaymentType = PaymentType.ORANGE_MONEY_TRANSFER,
         platform_code: str | None = None,
         external_transaction_id: str | None = None,
@@ -97,7 +103,8 @@ class TransactionIntentsResource(SyncResource):
         Args:
             source_payment_method_id:      Merchant PM id.
             destination_payment_method_id: Recipient's Mobile Money PM id.
-            amount:                        Amount in XAF (integer).
+            amount:                        Amount in the smallest currency unit (integer).
+            currency_code:                 ISO 4217 code, required by the API (default "XAF").
             payment_type:                  e.g. ORANGE_MONEY_TRANSFER or MTN_MONEY_TRANSFER.
             platform_code:                 Falls back to ``client.platform_code``.
             external_transaction_id:       Your own reference.
@@ -107,6 +114,7 @@ class TransactionIntentsResource(SyncResource):
             source_payment_method_id,
             destination_payment_method_id,
             amount,
+            currency_code,
             payment_type,
             platform_code or self._client.platform_code,
             external_transaction_id,
@@ -164,6 +172,7 @@ class AsyncTransactionIntentsResource(AsyncResource):
         source_payment_method_id: str,
         destination_payment_method_id: str,
         amount: int,
+        currency_code: str = "XAF",
         payment_type: PaymentType = PaymentType.MERCHANT_COLLECTION,
         platform_code: str | None = None,
         external_transaction_id: str | None = None,
@@ -175,6 +184,7 @@ class AsyncTransactionIntentsResource(AsyncResource):
             source_payment_method_id,
             destination_payment_method_id,
             amount,
+            currency_code,
             payment_type,
             platform_code or self._client.platform_code,
             external_transaction_id,
@@ -193,6 +203,7 @@ class AsyncTransactionIntentsResource(AsyncResource):
         source_payment_method_id: str,
         destination_payment_method_id: str,
         amount: int,
+        currency_code: str = "XAF",
         payment_type: PaymentType = PaymentType.ORANGE_MONEY_TRANSFER,
         platform_code: str | None = None,
         external_transaction_id: str | None = None,
@@ -203,6 +214,7 @@ class AsyncTransactionIntentsResource(AsyncResource):
             source_payment_method_id,
             destination_payment_method_id,
             amount,
+            currency_code,
             payment_type,
             platform_code or self._client.platform_code,
             external_transaction_id,

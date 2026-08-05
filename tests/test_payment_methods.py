@@ -58,6 +58,26 @@ def test_list_payment_methods(client):
     assert methods[0].id == "pm_abc123"
 
 
+def test_mobile_money_parses_country_code_response():
+    """Responses use countryCode; the model must still populate country_iso."""
+    from nexus_africa._models import MobileMoneyDetails
+
+    # Response shape (countryCode) — as returned by the live sandbox.
+    resp = MobileMoneyDetails.model_validate(
+        {"phoneNumber": "+237651111111", "countryCode": "CM", "mobileMoneyProvider": "MTN_MONEY"}
+    )
+    assert resp.country_iso == "CM"
+
+    # Request shape (countryIso) must still validate too.
+    req = MobileMoneyDetails.model_validate(
+        {"phoneNumber": "+237651111111", "countryIso": "CM", "mobileMoneyProvider": "MTN_MONEY"}
+    )
+    assert req.country_iso == "CM"
+
+    # And we always serialise back as countryIso (what the create endpoint wants).
+    assert resp.model_dump(by_alias=True)["countryIso"] == "CM"
+
+
 def test_create_raises_pm_error(client):
     error_body = {
         "code": "PM-0010",

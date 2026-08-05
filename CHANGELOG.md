@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   failures (HTTP 429, 5xx and transport errors). Configurable per client via
   `max_retries` (default 3) and `backoff_factor` (default 0.5s); a
   `Retry-After` header is honoured when present. `max_retries=0` disables it.
+- Regression tests asserting BaaS calls reach the BaaS host and never the gateway.
 
 ### Fixed
 
@@ -25,10 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from `fieldErrors` (falling back to `errorData`). Previously errors surfaced
   as "Unknown error" because only `message`/`errorData` were read. Verified
   against a live sandbox 403 ("Ip not allowed").
-
-### Added
-
-- Regression tests asserting BaaS calls reach the BaaS host and never the gateway.
+- `raise_for_response` no longer crashes with `AttributeError` when the error
+  body carries `code: null` (as validation errors do); it coalesces to
+  `"UNKNOWN"`.
+- Cash-in / cash-out now send the API-required `currencyCode` field (new
+  `currency_code` parameter, default `"XAF"`). Collects previously failed with
+  a 400 "Invalid data provided" (`currencyCode must not be blank`).
+- `MobileMoneyDetails` now parses the `countryCode` field returned by the API
+  while still sending `countryIso` on create (the two are asymmetric), so
+  reading back a Mobile Money payment method no longer raises a validation
+  error.
 
 ## [0.1.0] - 2026-07-27
 
